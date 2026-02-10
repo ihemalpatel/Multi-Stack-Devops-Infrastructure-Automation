@@ -1,0 +1,32 @@
+- name: Frontend setup
+  hosts: frontend
+  become: true
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
+
+    - name: Start nginx
+      service:
+        name: nginx
+        state: started
+        enabled: true
+
+- name: Backend setup
+  hosts: backend
+  become: true
+  tasks:
+    - name: Install Java
+      yum:
+        name: java-17-amazon-corretto
+        state: present
+
+- name: Database setup
+  hosts: database
+  become: true
+  tasks:
+    - name: Install PostgreSQL
+      yum:
+        name: postgresql-server
+        state: present
