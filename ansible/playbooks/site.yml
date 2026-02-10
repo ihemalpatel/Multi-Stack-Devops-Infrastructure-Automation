@@ -1,0 +1,17 @@
+- name: Configure Frontend
+  hosts: frontend
+  become: true
+  roles:
+    - frontend
+
+- name: Configure Backend
+  hosts: backend
+  become: true
+  roles:
+    - backend
+
+- name: Configure Database
+  hosts: database
+  become: true
+  roles:
+    - database
