@@ -1,87 +1,47 @@
+# VPC
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
-# VPC #
-resource "aws_vpc" "FHS_VPC" {
-cidr_block = "10.0.0.0/16"
-instance_tenancy = "default"
-
-tags = {
-Name = "FHS-VPC"
-}
-}
-
-#### Subnets ####
-# Public Subbnet #
-
-resource "aws_subnet" "public_subner" {
-vpc_id = aws_vpc.FHS_VPC
-cidr_block = "10.0.1.0/24"
-map_public_ip_on_launch = true
-availability_zone = "eu-central-1a"
+  tags = {
+    Name = "FHS-VPC"
+  }
 }
 
-# Private Subnet #
-
-resource "aws_subnet" "private" {
+# Public Subnet (Frontend / Bastion)
+resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  availability_zone       = "eu-east-1"
-  map_public_ip_on_launch = false
-  
+  availability_zone       = "eu-central-1a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "public-subnet"
+  }
+}
+
+# Private Subnet (Backend + DB)
+resource "aws_subnet" "private" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "eu-central-1a"
 
   tags = {
     Name = "private-subnet"
   }
 }
 
-
-
-##### Security Groups #####
-
-resource "aws_security_group" "sg-FHS" {
-name = "EC2SecurityGroup-FHS"
-description = "Allow SSH access"
-vpc_id = aws_vpc.FHS_VPC.id
-
-ingress {
-description = "SSH from anywhere"
-from_port = 22
-to_port = 22
-protocol = "tcp"
-cidr_blocks = ["0.0.0.0/0"]
-}
-
-ingress {
-description = "HTTP from anywhere"
-from_port = 80
-to_port = 80
-protocol = "tcp"
-cidr_blocks = ["0.0.0.0/0"]
-}
-
-egress {
-from_port = 0
-to_port = 0
-protocol = "-1"
-cidr_blocks = ["0.0.0.0/0"]
-}
-
-tags = {
-Name = "EC2SecurityGroup-FHS"
-}
-}
-
-
-# Routing Table
-resource "aws_route_table" "private" {
+# Internet Gateway
+resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "private-route-table_FHS"
+    Name = "fhs-igw"
   }
 }
 
-#### PUBLIC ROUNTING TABLE
-
+# Public Route Table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -89,33 +49,60 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-} 
-resource "aws_route_table_association" "private_assoc" {
-  subnet_id      = aws_subnet.private.id
-  route_table_id = aws_route_table.private.id
-}
-
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "main-igw_FHS"
+    Name = "public-rt"
   }
 }
+
 resource "aws_route_table_association" "public_assoc" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public.id
+# Frontend SG
+resource "aws_security_group" "frontend" {
+  name   = "frontend-fhs-sg"
+  vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "main-nat-gateway_FHS"
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on = [aws_internet_gateway.igw]
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
+# Backend SG
+resource "aws_security_group" "backend" {
+  name   = "backend-fhs-sg"
+  vpc_id = aws_vpc.main.id
 
+  ingress {
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_security_group.frontend.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}

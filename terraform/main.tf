@@ -1,26 +1,24 @@
+module "vpc" {
+  source = "./modules/vpc"
+}
+
 module "frontend" {
   source = "./modules/ec2"
 
-  name = "frontend"
+  name              = "frontend"
+  ami_id            = var.ami_id
+  instance_type     = var.instance_type
+  subnet_id         = module.vpc.public_subnet_id
+  security_group_id = module.vpc.frontend_sg_id
 }
 
 module "backend" {
   source = "./modules/ec2"
 
-  name = "backend"
+  name              = "backend"
+  ami_id            = var.ami_id
+  instance_type     = var.instance_type
+  subnet_id         = module.vpc.private_subnet_id
+  security_group_id = module.vpc.backend_sg_id
 }
 
-module "database" {
-  source = "./modules/ec2"
-
-  name = "database"
-}
-
-resource "aws_vpc" "FHS_VPC" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "default"
-
-  tags = {
-    Name = "FHS-VPC"
-  }
-}
