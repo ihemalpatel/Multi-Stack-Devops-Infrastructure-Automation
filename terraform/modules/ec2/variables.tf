@@ -14,3 +14,13 @@ variable "name" {
     description = "Name of the EC2 instance"
     type = string
 }
+
+variable "sg_id" {
+    description = "Security group"
+    type = string
+}
+
+variable "subnet_id" {
+    description = "Subnet"
+    type = string
+}
