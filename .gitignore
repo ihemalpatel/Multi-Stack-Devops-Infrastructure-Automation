@@ -17,3 +17,4 @@ override.tf.json
 # CLI configuration files
 .terraformrc
 terraform.rc
+terraform/modules/.DS_Store

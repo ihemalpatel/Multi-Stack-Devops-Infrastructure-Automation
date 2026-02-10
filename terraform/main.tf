@@ -20,4 +20,15 @@ module "backend" {
   instance_type = var.instance_type
   subnet_id     = module.vpc.private_subnet_id
   sg_id         = module.vpc.backend_sg_id
+<<<<<<< HEAD
 }
+=======
+}
+
+module "database" {
+  source        = "./modules/ec2"
+  name          = "database"
+  subnet_id     = module.vpc.private_subnet_id
+  sg_id         = module.vpc.db_sg_id
+}
+>>>>>>> e7697c9 (Terraform v1)
