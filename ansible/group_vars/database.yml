@@ -1,9 +1,3 @@
-- name: Database setup
-  hosts: database
-  become: true
-
-  tasks:
-    - name: Install PostgreSQL
-      yum:
-        name: postgresql-server
-        state: present
+postgres_port: 5432
+redis_port: 6379
+db_private_ip: 10.0.2.150

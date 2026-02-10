@@ -1,0 +1,37 @@
+# ---------- PostgreSQL ----------
+- name: Install PostgreSQL server
+  yum:
+    name:
+      - postgresql-server
+      - postgresql-contrib
+    state: present
+
+- name: Initialize PostgreSQL
+  command: postgresql-setup initdb
+  args:
+    creates: /var/lib/pgsql/data/PG_VERSION
+
+- name: Start PostgreSQL
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+
+# ---------- Redis ----------
+- name: Install Redis
+  yum:
+    name: redis
+    state: present
+
+- name: Configure Redis to listen on private IP
+  lineinfile:
+    path: /etc/redis.conf
+    regexp: '^bind '
+    line: "bind 127.0.0.1 {{ db_private_ip }}"
+  notify: Restart Redis
+
+- name: Start Redis
+  service:
+    name: redis
+    state: started
+    enabled: true

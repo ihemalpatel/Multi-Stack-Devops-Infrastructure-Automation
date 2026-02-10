@@ -1,9 +1,3 @@
-- name: Backend setup
-  hosts: backend
-  become: true
-
-  tasks:
-    - name: Install Java
-      yum:
-        name: java-17-amazon-corretto
-        state: present
+backend_requires:
+  - postgresql
+  - redis

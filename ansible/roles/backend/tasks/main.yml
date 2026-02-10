@@ -1,0 +1,9 @@
+- name: Install PostgreSQL client
+  yum:
+    name: postgresql
+    state: present
+
+- name: Install Redis client
+  yum:
+    name: redis
+    state: present

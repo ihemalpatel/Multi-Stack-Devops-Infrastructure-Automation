@@ -1,15 +1,1 @@
-- name: Frontend setup
-  hosts: frontend
-  become: true
-
-  tasks:
-    - name: Install Nginx
-      yum:
-        name: nginx
-        state: present
-
-    - name: Start Nginx
-      service:
-        name: nginx
-        state: started
-        enabled: true
+frontend_service: nginx
