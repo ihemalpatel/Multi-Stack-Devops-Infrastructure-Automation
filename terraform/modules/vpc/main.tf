@@ -147,8 +147,6 @@ resource "aws_security_group" "backend" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-<<<<<<< HEAD
-=======
 }
 
 # Database SG
@@ -174,5 +172,4 @@ resource "aws_security_group" "database" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
->>>>>>> e7697c9 (Terraform v1)
 }
