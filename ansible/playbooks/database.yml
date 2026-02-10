@@ -1,0 +1,9 @@
+- name: Database setup
+  hosts: database
+  become: true
+
+  tasks:
+    - name: Install PostgreSQL
+      yum:
+        name: postgresql-server
+        state: present
