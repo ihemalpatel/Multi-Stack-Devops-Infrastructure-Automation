@@ -1,37 +1,27 @@
-# ---------- PostgreSQL ----------
-- name: Install PostgreSQL server
-  yum:
-    name:
-      - postgresql-server
-      - postgresql-contrib
-    state: present
+---
+- name: Pull Redis image
+  command: docker pull redis:7
 
-- name: Initialize PostgreSQL
-  command: postgresql-setup initdb
-  args:
-    creates: /var/lib/pgsql/data/PG_VERSION
+- name: Run Redis container
+  command: >
+    docker run -d
+    --name redis
+    --restart always
+    -p 6379:6379
+    redis:7
+  register: redis_run
+  failed_when: false
 
-- name: Start PostgreSQL
-  service:
-    name: postgresql
-    state: started
-    enabled: true
+- name: Pull Worker image
+  command: docker pull shishir165/worker:v1.0
 
-# ---------- Redis ----------
-- name: Install Redis
-  yum:
-    name: redis
-    state: present
-
-- name: Configure Redis to listen on private IP
-  lineinfile:
-    path: /etc/redis.conf
-    regexp: '^bind '
-    line: "bind 127.0.0.1 {{ db_private_ip }}"
-  notify: Restart Redis
-
-- name: Start Redis
-  service:
-    name: redis
-    state: started
-    enabled: true
+- name: Run Worker container
+  command: >
+    docker run -d
+    --name worker
+    --restart always
+    -e REDIS_HOST=10.0.2.136
+    -e POSTGRES_HOST=10.0.2.136
+    shishir165/worker:v1.0
+  register: worker_run
+  failed_when: false

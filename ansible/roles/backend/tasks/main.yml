@@ -1,9 +1,12 @@
-- name: Install PostgreSQL client
-  yum:
-    name: postgresql
-    state: present
+- name: Pull Worker image
+  command: docker pull shishir165/worker:v1.1
 
-- name: Install Redis client
-  yum:
-    name: redis
-    state: present
+- name: Run Worker container
+  command: >
+    docker run -d
+    --name worker
+    --restart always
+    -e REDIS_HOST=localhost
+    -e POSTGRES_HOST=10.0.2.136
+    shishir165/worker:v1.1
+      failed_when: false

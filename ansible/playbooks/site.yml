@@ -1,17 +1,25 @@
-- name: Configure Frontend
-  hosts: frontend
+---
+- name: Install Docker on all hosts
+  hosts: all
+  become: true
+  serial: 1
+  roles:
+    - docker
+
+- name: Configure Database Tier
+  hosts: database
   become: true
   roles:
-    - frontend
+    - database
 
-- name: Configure Backend
+- name: Configure Backend Tier
   hosts: backend
   become: true
   roles:
     - backend
 
-- name: Configure Database
-  hosts: database
+- name: Configure Frontend Tier
+  hosts: frontend
   become: true
   roles:
-    - database
+    - frontend
