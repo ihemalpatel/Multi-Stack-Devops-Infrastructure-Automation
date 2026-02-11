@@ -1,10 +1,58 @@
+---
+#Install Nginx
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
 - name: Install Nginx
   apt:
     name: nginx
     state: present
 
-- name: Start Nginx
+- name: Start and enable Nginx
   service:
     name: nginx
     state: started
     enabled: true
+
+# Run Vote Container
+- name: Remove vote container if exists
+  shell: docker rm -f vote || true
+
+- name: Pull vote image
+  shell: docker pull shishir165/vote:v1.1
+
+- name: Run vote container
+  shell: >
+    docker run -d
+    --name vote
+    --restart always
+    -p 5000:80
+    -e REDIS_HOST=10.0.2.126
+    -e REDIS_PORT=6379
+    -e POSTGRES_HOST=10.0.2.136
+    -e POSTGRES_USER=postgres
+    -e POSTGRES_PASSWORD=postgres
+    -e POSTGRES_DB=postgres
+    -e POSTGRES_PORT=5432
+    shishir165/vote:v1.1
+
+# Run Result Container
+- name: Remove result container if exists
+  shell: docker rm -f result || true
+
+- name: Pull result image
+  shell: docker pull shishir165/result:v1.1
+
+- name: Run result container
+  shell: >
+    docker run -d
+    --name result
+    --restart always
+    -p 5001:80
+    -e POSTGRES_HOST=10.0.2.136
+    -e POSTGRES_USER=postgres
+    -e POSTGRES_PASSWORD=postgres
+    -e POSTGRES_DB=postgres
+    -e POSTGRES_PORT=5432
+    shishir165/result:v1.1

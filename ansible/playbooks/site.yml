@@ -2,7 +2,7 @@
 - name: Install Docker on all hosts
   hosts: all
   become: true
-  serial: 1
+  
   roles:
     - docker
 

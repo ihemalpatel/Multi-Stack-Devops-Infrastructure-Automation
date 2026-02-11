@@ -1,27 +1,17 @@
 ---
-- name: Pull Redis image
-  command: docker pull redis:7
+- name: Remove PostgreSQL container if exists
+  shell: docker rm -f postgres || true
 
-- name: Run Redis container
-  command: >
+- name: Pull PostgreSQL image
+  shell: docker pull postgres:15
+
+- name: Run PostgreSQL container
+  shell: >
     docker run -d
-    --name redis
+    --name postgres
     --restart always
-    -p 6379:6379
-    redis:7
-  register: redis_run
-  failed_when: false
-
-- name: Pull Worker image
-  command: docker pull shishir165/worker:v1.1
-
-- name: Run Worker container
-  command: >
-    docker run -d
-    --name worker
-    --restart always
-    -e REDIS_HOST=10.0.2.136
-    -e POSTGRES_HOST=10.0.2.136
-    shishir165/worker:v1.1
-  register: worker_run
-  failed_when: false
+    -e POSTGRES_USER=postgres
+    -e POSTGRES_PASSWORD=postgres
+    -e POSTGRES_DB=postgres
+    -p 5432:5432
+    postgres:15
