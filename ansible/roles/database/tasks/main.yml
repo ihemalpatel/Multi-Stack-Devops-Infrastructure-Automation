@@ -13,7 +13,7 @@
   failed_when: false
 
 - name: Pull Worker image
-  command: docker pull shishir165/worker:v1.0
+  command: docker pull shishir165/worker:v1.1
 
 - name: Run Worker container
   command: >
@@ -22,6 +22,6 @@
     --restart always
     -e REDIS_HOST=10.0.2.136
     -e POSTGRES_HOST=10.0.2.136
-    shishir165/worker:v1.0
+    shishir165/worker:v1.1
   register: worker_run
   failed_when: false
