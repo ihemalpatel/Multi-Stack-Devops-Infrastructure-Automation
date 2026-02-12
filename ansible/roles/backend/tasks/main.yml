@@ -1,20 +1,16 @@
----
-- name: Remove Redis container if exists
-  shell: docker rm -f redis || true
-
-- name: Run Redis container
-  shell: >
-    docker run -d
-    --name redis
-    --restart always
-    -p 6379:6379
-    redis:7
+# DO NOT remove redis unless you really want a reset
+- name: Ensure Redis is running
+  shell: |
+    docker ps | grep redis || \
+    docker run -d \
+      --name redis \
+      --restart always \
+      -p 6379:6379 \
+      redis:7 \
+      redis-server --protected-mode no --bind 0.0.0.0
 
 - name: Remove Worker container if exists
   shell: docker rm -f worker || true
-
-- name: Pull Worker image
-  shell: docker pull shishir165/worker:v1.1
 
 - name: Run Worker container
   shell: >
@@ -28,4 +24,5 @@
     -e POSTGRES_PASSWORD=postgres
     -e POSTGRES_DB=postgres
     -e POSTGRES_PORT=5432
+    -e ConnectionStrings__Default="Host=10.0.2.136;Port=5432;Username=postgres;Password=postgres;Database=postgres"
     shishir165/worker:v1.1
