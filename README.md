@@ -1,155 +1,139 @@
 <!-- © 2024 | Ironhack -->
 
----
-
 # Multi-Stack Voting Application
 
-**Welcome to your DevOps practice project!** This repository hosts a multi-stack voting application composed of several services, each implemented in a different language and technology stack. The goal is to help you gain experience with containerization, orchestration, and running a distributed set of services—both individually and as part of a unified system.
+This repository contains a **multi-tier, multi-language voting application** developed as a **DevOps automation project**.  
+The project demonstrates how modern applications are provisioned, deployed, and operated using **Terraform, Ansible, Docker, and AWS**, while addressing real-world challenges such as service communication, container networking, and platform compatibility.
 
-This application, while simple, uses multiple components commonly found in modern distributed architectures, giving you hands-on practice in connecting services, handling containers, and working with basic infrastructure automation.
-
-## Application Overview
-
-The voting application includes:
-
-- **Vote (Python)**: A Python Flask-based web application where users can vote between two options.
-- **Redis (in-memory queue)**: Collects incoming votes and temporarily stores them.
-- **Worker (.NET)**: A .NET 7.0-based service that consumes votes from Redis and persists them into a database.
-- **Postgres (Database)**: Stores votes for long-term persistence.
-- **Result (Node.js)**: A Node.js/Express web application that displays the vote counts in real time.
-
-### Why This Setup?
-
-The goal is to introduce you to a variety of languages, tools, and frameworks in one place. This is **not** a perfect production design. Instead, it’s intentionally diverse to help you:
-
-- Work with multiple runtimes and languages (Python, Node.js, .NET).
-- Interact with services like Redis and Postgres.
-- Containerize applications using Docker.
-- Use Docker Compose to orchestrate and manage multiple services together.
-
-By dealing with this “messy” environment, you’ll build real-world problem-solving skills. After this project, you should feel more confident tackling more complex deployments and troubleshooting issues in containerized, multi-service setups.
+The application intentionally combines **multiple technologies** to simulate production-like complexity and strengthen practical DevOps troubleshooting skills.
 
 ---
 
-## How to Run Each Component
+## Architecture Overview
 
-### Running the Vote Service (Python) Locally (No Docker)
+The system follows a **three-tier distributed architecture**:
 
-1. Ensure you have Python 3.10+ installed.
-2. Navigate to the `vote` directory:
-   ```bash
-   cd vote
-   pip install -r requirements.txt
-   python app.py
-   ```
-   Access the vote interface at [http://localhost:5000](http://localhost:5000).
+### Application Components
 
-### Running Redis Locally (No Docker)
+- **Vote Service (Python / Flask)**  
+  A web interface where users cast votes between two options.
 
-1. Install Redis on your system ([https://redis.io/docs/getting-started/](https://redis.io/docs/getting-started/)).
-2. Start Redis:
-   ```bash
-   redis-server
-   ```
-   Redis will be available at `localhost:6379`.
+- **Redis (In-memory Queue)**  
+  Temporarily stores votes and acts as a message queue.
 
-### Running the Worker (C#/.NET) Locally (No Docker)
+- **Worker Service (.NET)**  
+  Consumes votes from Redis and writes them into the database.
 
-1. Ensure .NET 7.0 SDK is installed.
-2. Navigate to `worker`:
-   ```bash
-   cd worker
-   dotnet restore
-   dotnet run
-   ```
-   The worker will attempt to connect to Redis and Postgres when available.
+- **PostgreSQL (Database)**  
+  Persists voting data for long-term storage.
 
-### Running Postgres Locally (No Docker)
+- **Result Service (Node.js / Express)**  
+  Displays real-time voting results from the database.
 
-1. Install Postgres from [https://www.postgresql.org/download/](https://www.postgresql.org/download/).
-2. Start Postgres, note the username and password (default `postgres`/`postgres`):
-   ```bash
-   # On many systems, Postgres runs as a service once installed.
-   ```
-   Postgres will be available at `localhost:5432`.
-
-### Running the Result Service (Node.js) Locally (No Docker)
-
-1. Ensure Node.js 18+ is installed.
-2. Navigate to `result`:
-   ```bash
-   cd result
-   npm install
-   node server.js
-   ```
-   Access the results interface at [http://localhost:4000](http://localhost:4000).
-
-**Note:** To get the entire system working end-to-end (i.e., votes flowing through Redis, processed by the worker, stored in Postgres, and displayed by the result app), you’ll need to ensure each component is running and that connection strings or environment variables point to the correct services.
+### Data Flow
+User → Vote App → Redis → Worker → PostgreSQL → Result App
 
 ---
 
-## Running the Entire Stack in Docker
+## DevOps & Infrastructure Stack
 
-### Building and Running Individual Services
+This project focuses on **Infrastructure as Code (IaC)** and automation:
 
-You can build each service with Docker and run them individually:
+- **Terraform** – Infrastructure provisioning on AWS  
+- **Ansible** – Configuration management and application deployment  
+- **Docker** – Containerization of all services  
+- **Docker Compose** – Local orchestration and testing  
+- **AWS EC2** – Hosting frontend, backend, and database tiers  
+Multi-Stack-Devops-Infrastructure-Automation/
+│
+├── ansible/
+│   ├── ansible.cfg
+│   ├── inventory/
+│   │   └── hosts.ini
+│   ├── group_vars/
+│   ├── playbooks/
+│   │   └── site.yml
+│   ├── roles/
+│   │   ├── docker/
+│   │   ├── database/
+│   │   ├── backend/
+│   │   └── frontend/
+│   └── collections/
+│       └── requirements.yml
+│
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+│
+├── vote/        # Python Flask app
+├── worker/      # .NET worker service
+├── result/      # Node.js result app
+├── healthchecks/
+│
+├── .gitignore
+├── LICENSE
+└── README.md
 
-- **Vote (Python)**:
-  ```bash
-  docker build -t myorg/vote:latest ./vote
-  docker run --name vote -p 8080:80 myorg/vote:latest
-  ```
-  Visit [http://localhost:8080](http://localhost:8080).
+---
 
-- **Redis** (official image, no build needed):
-  ```bash
-  docker run --name redis -p 6379:6379 redis:alpine
-  ```
+## What We Learned
 
-- **Worker (.NET)**:
-  ```bash
-  docker build -t myorg/worker:latest ./worker
-  docker run --name worker myorg/worker:latest
-  ```
-  
-- **Postgres**:
-  ```bash
-  docker run --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:15-alpine
-  ```
+Through this project, **we learned how to**:
 
-- **Result (Node.js)**:
-  ```bash
-  docker build -t myorg/result:latest ./result
-  docker run --name result -p 8081:80 myorg/result:latest
-  ```
-  Visit [http://localhost:8081](http://localhost:8081).
+- Deploy and connect multi-service applications
+- Automate infrastructure provisioning and configuration
+- Manage container networking across multiple hosts
+- Debug real-world service communication issues
+- Handle platform differences (amd64 vs arm64)
+- Validate end-to-end data flow across distributed systems
 
-### Using Docker Compose
+This project emphasized **practical problem-solving** over idealized architecture.
 
-The easiest way to run the entire stack is via Docker Compose. From the project root directory:
+---
 
+## Major Challenge & Solution
+
+### Challenge  
+The voting application initially failed to display live results due to:
+- Redis and PostgreSQL connectivity issues
+- Incorrect environment variables
+- Platform mismatches between Docker images
+- Containers waiting indefinitely for dependencies
+
+### Solution  
+These issues were resolved by:
+- Correctly exposing Redis and PostgreSQL services
+- Aligning environment variables across services
+- Building amd64-compatible Docker images
+- Verifying network connectivity between hosts
+- Restarting services in the correct dependency order
+
+This resulted in a fully functional **end-to-end voting system**.
+
+---
+
+## Accessing the Application
+
+- **Vote Application**  
+  👉 http://18.184.236.82:5000/
+
+- **Result Application**  
+  👉 http://18.184.236.82:5001/
+
+---
+
+## Platform Notes
+
+On Apple Silicon (arm64) systems, some services required amd64 images:
 ```bash
-docker compose up
-```
+docker buildx build --platform linux/amd64 -t image:tag .
 
-This will:
 
-- Build and run the vote, worker, and result services.
-- Run Redis and Postgres from their official images.
-- Set up networks, volumes, and environment variables so all services can communicate.
+Authors
 
-Visit [http://localhost:8080](http://localhost:8080) to vote and [http://localhost:8081](http://localhost:8081) to see results.
+Shishir Pariyar
 
----
+Hemal Patel
 
-## Notes on Platforms (arm64 vs amd64)
-
-If you’re on an arm64 machine (e.g., Apple Silicon M1/M2) and encounter issues with images or dependencies that assume amd64, you can use Docker `buildx`:
-
-```bash
-docker buildx build --platform linux/amd64 -t myorg/worker:latest ./worker
-```
-
-This ensures the image is built for the desired platform.
-
----
+Fawad
